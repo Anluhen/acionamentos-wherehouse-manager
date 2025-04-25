@@ -218,8 +218,34 @@ ErrSection = "extractVL10GFromSAP"
     session.findById("wnd[0]").sendVKey 0
     
     session.findById("wnd[0]/tbar[1]/btn[17]").press
-    session.findById("wnd[1]/usr/txtENAME-LOW").Text = "ALVIZE"
+    session.findById("wnd[1]/usr/txtENAME-LOW").Text = "JULIANARIGO"
     session.findById("wnd[1]/tbar[0]/btn[8]").press
+   
+    Dim grid As Object
+    Dim iRow As Long
+    Dim searchValue As String
+    Dim colName As String
+    
+    ' Set your search value and the column name (as defined in the grid)
+    searchValue = "ENGE JULI"
+    colName = "VARIANT"   ' Replace with the actual column name
+    
+    ' Get the grid control
+    Set grid = session.findById("wnd[1]/usr/cntlALV_CONTAINER_1/shellcont/shell")
+    
+    ' Loop through all rows
+    For iRow = 0 To grid.RowCount - 1
+        If grid.GetCellValue(iRow, colName) = searchValue Then
+            ' When found, set the current cell to the matching row
+            grid.CurrentCellRow = iRow
+            ' Depending on your setup, SelectedRows may require a string
+            grid.SelectedRows = CStr(iRow)
+            ' Double-click the cell to perform the action
+            grid.doubleClickCurrentCell
+            Exit For   ' Exit the loop once the desired row is found
+        End If
+    Next iRow
+    
     session.findById("wnd[0]/tbar[1]/btn[8]").press
     session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").contextMenu
     session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").selectContextMenuItem "&XXL"
@@ -421,7 +447,7 @@ ErrSection = "completeInformationFromAnalisys30"
 ErrSection = "completeInformationFromAnalisys40-" & i
         isNotFound = True
 
-        If wsSource.Cells(i, sourceColDict("PEP")).Value <> "#" Then
+        If InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") <> 0 Then
             For j = targetLastRow To 3 Step -1 ' Assuming headers are in row 1
                 If Left(wsSource.Cells(i, sourceColDict("PEP")).Value, InStr(InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") + 1, wsSource.Cells(i, sourceColDict("PEP")).Value, "-") - 1) = Left(wsTarget.Cells(j, colDict("PEP")).Value, InStr(InStr(wsTarget.Cells(j, colDict("PEP")).Value, "-") + 1, wsTarget.Cells(j, colDict("PEP")).Value, "-") - 1) Then
                     isNotFound = False
