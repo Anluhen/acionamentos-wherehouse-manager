@@ -79,7 +79,7 @@ ErrSection = "extractZTMM091FromSAP"
     session.findById("wnd[0]").sendVKey 0
     
     session.findById("wnd[0]/tbar[1]/btn[17]").press
-    session.findById("wnd[1]/usr/txtENAME-LOW").Text = "ALVIZE"
+    session.findById("wnd[1]/usr/txtENAME-LOW").Text = "JULIANARIGO"
     session.findById("wnd[1]/tbar[0]/btn[8]").press
     session.findById("wnd[0]/tbar[1]/btn[8]").press
     session.findById("wnd[0]/tbar[1]/btn[43]").press
