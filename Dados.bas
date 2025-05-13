@@ -1,4 +1,6 @@
 Attribute VB_Name = "Dados"
+' V 1.3.1
+
 Option Explicit
 
 Public SapGuiAuto As Object
@@ -8,7 +10,7 @@ Public session As Object
 Public colDict As Object ' Dictionary to store column names and indexes
 
 Sub AtualizarDados(Optional ShowOnMacroList As Boolean = False)
-    
+        
     On Error GoTo ErrorHandler
     
     OptimizeCodeExecution True
@@ -282,7 +284,8 @@ ErrSection = "extractDataFromVL10G"
         ' Check if 60 seconds have elapsed
         If Timer - startTime >= 60 Then
             ErrSection = "extractDataFromVL10G-timeout"
-            GoTo ErrorHandler
+            MsgBox "Erro de Timeout. Não foi possível atualizar conforme VL10G.", vbInformation, "Timeout"
+            GoTo completeInformationFromAnalisys
         End If
         
         DoEvents  ' Yield control to allow other events to be processed
@@ -374,7 +377,8 @@ SkipIterationVL10G:
     On Error Resume Next
     Kill exportWbPath & exportWbName
     On Error GoTo ErrorHandler
-    
+
+completeInformationFromAnalisys:
 ErrSection = "completeInformationFromAnalisys"
 
     ' Open the workbook Reunião de Faturamento Semanal - New Layout.xlsm
@@ -665,7 +669,7 @@ Sub UpdateRowIfEmpty(wsTarget As Worksheet, rowIndex As Long, colDict As Object,
         End If
         
         ' For ZETO (and ZVA1) update if both are empty, Column G
-        If .Cells(rowIndex, colDict("ZETO")).Value <> "" And .Cells(rowIndex, colDict("ZVA1")).Value <> "" Then
+        If .Cells(rowIndex, colDict("ZETO")).Value = "" And .Cells(rowIndex, colDict("ZVA1")).Value = "" Then
             If .Cells(rowIndex, colDict("Market")).Value = "INTERNO" Then
                 .Cells(rowIndex, colDict("ZETO")).Value = ""
                 .Cells(rowIndex, colDict("ZVA1")).Value = sourceMaterial
