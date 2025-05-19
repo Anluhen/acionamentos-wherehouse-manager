@@ -116,15 +116,14 @@ ErrSection = "extractDataFromZTMM091"
         Next wb
         
         ' Check if 60 seconds have elapsed
-        If Timer - startTime >= 60 Then
+        If Timer - startTime >= 120 Then
             ErrSection = "extractDataFromZTMM091-timeout"
-            GoTo ErrorHandler
+            MsgBox "Erro de Timeout. Não foi possível atualizar conforme VL10G.", vbInformation, "Timeout"
+            GoTo extractVL10GFromSAP
         End If
         
         DoEvents  ' Yield control to allow other events to be processed
         
-        ' Pause for 3 seconds to give the external process time to open the workbook
-        Application.Wait Now + TimeValue("00:00:03")
     Loop
 
     ' Set worksheets
@@ -209,7 +208,8 @@ SkipIterationZTMM091:
     On Error Resume Next
     Kill exportWbPath & exportWbName
     On Error GoTo ErrorHandler
-    
+
+extractVL10GFromSAP:
 ErrSection = "extractVL10GFromSAP"
 
     ' Name of the workbook to find
@@ -282,7 +282,7 @@ ErrSection = "extractDataFromVL10G"
         Next wb
         
         ' Check if 60 seconds have elapsed
-        If Timer - startTime >= 60 Then
+        If Timer - startTime >= 120 Then
             ErrSection = "extractDataFromVL10G-timeout"
             MsgBox "Erro de Timeout. Não foi possível atualizar conforme VL10G.", vbInformation, "Timeout"
             GoTo completeInformationFromAnalisys
