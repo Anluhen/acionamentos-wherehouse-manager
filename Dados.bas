@@ -1,5 +1,5 @@
 Attribute VB_Name = "Dados"
-' V 1.3.1
+' V 1.4.0
 
 Option Explicit
 
@@ -198,7 +198,7 @@ ErrSection = "extractDataFromZTMM09140-" & i
             Call AddNewRow(wsTarget, colDict, Date, sourcePEP, sourceMaterial, "ITJ", 1321, "")
         Else
             ' Update the existing row at index j with the same values
-            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, sourcePEP, "", "", "", sourceMaterial, "ITJ", "", "", "", "", 1321)
+            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, sourcePEP, "", "", "", sourceMaterial, "ITJ", "", "", "", "", 1321, "", "")
         End If
 SkipIterationZTMM091:
     Next i
@@ -367,7 +367,7 @@ ErrSection = "extractDataFromVL10G40-" & i
             Call AddNewRow(wsTarget, colDict, Date, sourcePEP, sourceMaterial, "JGS", 1320, sourceIncoterms)
         Else
             ' Update the existing row at index j
-            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, sourcePEP, "", "", "", sourceMaterial, "JGS", sourceIncoterms, "", "", "", 1321)
+            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, sourcePEP, "", "", "", sourceMaterial, "JGS", sourceIncoterms, "", "", "", 1321, "", "")
         End If
 SkipIterationVL10G:
     Next i
@@ -473,7 +473,7 @@ ErrSection = "completeInformationFromAnalisys40-" & i
             End If
         
             ' Update the existing row at index j
-            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, wsSource.Cells(i, sourceColDict("PEP")).Value, wsSource.Cells(i, sourceColDict("Market")).Value, wsSource.Cells(i, sourceColDict("Client")).Value, wsSource.Cells(i, sourceColDict("SalesDoc")).Value, "", "", wsSource.Cells(i, sourceColDict("Incoterms")).Value, wsSource.Cells(i, sourceColDict("Incoterms2")).Value, wsSource.Cells(i, sourceColDict("PM")).Value, amount, wsSource.Cells(i, sourceColDict("Plant")).Value)
+            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, wsSource.Cells(i, sourceColDict("PEP")).Value, wsSource.Cells(i, sourceColDict("Market")).Value, wsSource.Cells(i, sourceColDict("Client")).Value, wsSource.Cells(i, sourceColDict("SalesDoc")).Value, "", "", wsSource.Cells(i, sourceColDict("Incoterms")).Value, wsSource.Cells(i, sourceColDict("Incoterms2")).Value, wsSource.Cells(i, sourceColDict("PM")).Value, amount, wsSource.Cells(i, sourceColDict("Plant")).Value, wsSource.Cells(i, sourceColDict("PrepDate")).Value, wsSource.Cells(i, sourceColDict("ShipmentDate")).Value)
         End If
     Next i
 
@@ -583,6 +583,23 @@ ErrSection = "moveFinishedItems30-" & i
     ' Clear clipboard
     Application.CutCopyMode = False
 
+    Dim shp As Shape
+    Dim txtBox As Shape
+    Dim shapeFound As Boolean
+    
+    Set wsSource = wbThis.Sheets("FATURAMENTO")
+
+    ' Loop through all shapes in the sheet
+    shapeFound = False
+    For Each shp In wsSource.Shapes
+        ' Check if the shape is a text box
+        If shp.Type = msoTextBox Then
+            shp.TextFrame2.TextRange.Text = "Última atualização: " & vbCrLf & Now
+            shapeFound = True
+            Exit For
+        End If
+    Next shp
+
 CleanExit:
 
     ' Loop through all open workbooks to find if the exportWb is oppened
@@ -635,7 +652,7 @@ Sub UpdateRowIfEmpty(wsTarget As Worksheet, rowIndex As Long, colDict As Object,
                      sourceDate As Date, sourcePEP As Variant, sourceMarket As Variant, sourceClient As Variant, _
                      sourceOV As Variant, sourceMaterial As Variant, sourceOrderLocation As String, _
                      sourceIncoterms As Variant, sourceIncoterms2 As Variant, sourcePM As Variant, _
-                     sourceAmount As Variant, sourcePhysicalStock As Variant)
+                     sourceAmount As Variant, sourcePhysicalStock As Variant, sourcePrepDate As Variant, sourceShipmentDate As Variant)
                 
     With wsTarget
     
@@ -704,7 +721,17 @@ Sub UpdateRowIfEmpty(wsTarget As Worksheet, rowIndex As Long, colDict As Object,
             .Cells(rowIndex, colDict("Amount")).Value = sourceAmount
         End If
         
-        ' Update PhysicalStock if empty, Column T
+        ' Update DataReme if empty
+        If .Cells(rowIndex, colDict("DataReme")).Value = "" Then
+            .Cells(rowIndex, colDict("DataReme")).Value = sourcePrepDate
+        End If
+        
+        ' Update DataPrep if empty
+        If .Cells(rowIndex, colDict("DataPrep")).Value = "" Then
+            .Cells(rowIndex, colDict("DataPrep")).Value = sourceShipmentDate
+        End If
+        
+        ' Update PhysicalStock if empty
         If .Cells(rowIndex, colDict("PhysicalStock")).Value = "" Then
             .Cells(rowIndex, colDict("PhysicalStock")).Value = sourcePhysicalStock
         End If
@@ -781,32 +808,36 @@ Sub GetAllColumnIndexes(ws As Worksheet, Optional ShowOnMacroList As Boolean = F
     Set colDict = CreateObject("Scripting.Dictionary")
     
     ' Map your internal aliases to actual header names
-    colDict.Add "Date", GetColumnIndex(ws, "Data Entrada no Relatório", 2)    ' Column A
-    colDict.Add "PEP", GetColumnIndex(ws, "PEP", 2)                           ' Column B
-    colDict.Add "Market", GetColumnIndex(ws, "Mercado", 2)                    ' Column C
-    colDict.Add "Client", GetColumnIndex(ws, "CLIENTE", 2)                    ' Column D
-    colDict.Add "OV", GetColumnIndex(ws, "OV", 2)                             ' Column E
-    colDict.Add "ZVA1", GetColumnIndex(ws, "ZVA1", 2)                         ' Column F
-    colDict.Add "ZETO", GetColumnIndex(ws, "ZETO", 2)                         ' Column G
-    colDict.Add "PaymentTerms", GetColumnIndex(ws, "Cond Pgto", 2)            ' Column H
-    colDict.Add "OrderLocation", GetColumnIndex(ws, "Fabricação", 2)          ' Column I
-    colDict.Add "Incoterm", GetColumnIndex(ws, "Incoterm", 2)                 ' Column J
-    colDict.Add "Incoterm2", GetColumnIndex(ws, "Incoterm 2", 2)              ' Column K
-    colDict.Add "PM", GetColumnIndex(ws, "PM", 2)                             ' Column L
-    colDict.Add "Amount", GetColumnIndex(ws, "R$", 2)                         ' Column M
-    colDict.Add "BillingResp", GetColumnIndex(ws, "Resp.Fat.", 2)             ' Column N
-    colDict.Add "BillingForecast", GetColumnIndex(ws, "PREV. FAT", 2)         ' Column O
-    colDict.Add "StockStatus", GetColumnIndex(ws, "Situação Estoque", 2)      ' Column P
-    colDict.Add "Checklist", GetColumnIndex(ws, "CheckList", 2)               ' Column Q
-    colDict.Add "Freight", GetColumnIndex(ws, "Frete", 2)                 ' Column R
-    colDict.Add "Status", GetColumnIndex(ws, "Situação", 2)                   ' Column S
-    colDict.Add "PhysicalStock", GetColumnIndex(ws, "Estoque físico atual", 2) ' Column T
-    colDict.Add "ETD", GetColumnIndex(ws, "ETD", 2)                           ' Column U
-    colDict.Add "ShippingDate", GetColumnIndex(ws, "Data Embarque", 2)        ' Column V
-    colDict.Add "ETA", GetColumnIndex(ws, "ETA", 2)                           ' Column W
-    colDict.Add "ShipmentNumber", GetColumnIndex(ws, "nº Embarque", 2)        ' Column X
-    colDict.Add "LogisticsCoord", GetColumnIndex(ws, "Coord. Logística", 2)    ' Column Y
-    colDict.Add "Notes", GetColumnIndex(ws, "Observações", 2)                 ' Column Z
+    colDict.Add "Date", 1               ' Column A
+    colDict.Add "PEP", 2                ' Column B
+    colDict.Add "Market", 3             ' Column C
+    colDict.Add "Client", 4             ' Column D
+    colDict.Add "OV", 5                 ' Column E
+    colDict.Add "ZVA1", 6               ' Column F
+    colDict.Add "ZETO", 7               ' Column G
+    colDict.Add "PaymentTerms", 8       ' Column H
+    colDict.Add "OrderLocation", 9      ' Column I
+    colDict.Add "Incoterm", 10          ' Column J
+    colDict.Add "Incoterm2", 11         ' Column K
+    colDict.Add "PM", 12                ' Column L
+    colDict.Add "Amount", 13            ' Column M
+    colDict.Add "DataReme", 14          ' Column N
+    colDict.Add "DataPrep", 15          ' Column O
+    colDict.Add "BillingResp", 16       ' Column P
+    colDict.Add "BillingForecast", 17   ' Column Q
+    colDict.Add "StockStatus", 18       ' Column R
+    colDict.Add "Checklist", 19         ' Column S
+    colDict.Add "Freight", 20           ' Column T
+    colDict.Add "Status", 21            ' Column U
+    colDict.Add "PhysicalStock", 22     ' Column V
+    colDict.Add "STATUS BI", 23         ' Column W
+    colDict.Add "ETD", 24               ' Column X
+    colDict.Add "ShippingDate", 25      ' Column Y
+    colDict.Add "ETA", 26               ' Column Z
+    colDict.Add "ShipmentNumber", 27    ' Column AA
+    colDict.Add "LogisticsCoord", 28    ' Column AB
+    colDict.Add "VALOR BI", 29          ' Column AC
+    colDict.Add "Notes", 30             ' Column AD
     
 End Sub
 
