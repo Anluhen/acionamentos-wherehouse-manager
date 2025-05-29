@@ -532,64 +532,27 @@ ErrSection = "completeLocationInfo30-" & i
     ' Success message
     MsgBox "Os dados foram atualizados com sucesso!", vbInformation, "Macro Finalizada"
 
-' Ignore next bit of code
-GoTo CleanExit
-ErrSection = "moveFinishedItems"
+Highlights:
 
-    ' Set worksheets
     Set wsSource = wbThis.Sheets("FATURAMENTO")
-    Set wsTarget = wbThis.Sheets("Finalizado")
     
-ErrSection = "moveFinishedItems10"
-
-    If wsSource Is Nothing Or wsTarget Is Nothing Then
-        GoTo ErrorHandler
-    End If
-
     ' Find the last used row and column in the source sheet
     sourceLastRow = wsSource.Cells(wsSource.Rows.Count, 1).End(xlUp).Row
     sourceLastCol = wsSource.Cells(1, wsSource.Columns.Count).End(xlToLeft).Column
 
-ErrSection = "moveFinishedItems20"
-
-    ' If "Situação" column not found, exit sub
-    If colDict("Status") = 0 Then
-        GoTo ErrorHandler
-    End If
-    
     ' Loop through rows from bottom to top to avoid skipping rows after deletion
     For i = sourceLastRow To 2 Step -1 ' Assuming headers are in row 1
-ErrSection = "moveFinishedItems30-" & i
-        If UCase(Trim(wsSource.Cells(i, colDict("Status")).Value)) = "RECONHECIDO" Then
-            ' Find last row in target sheet
-            targetLastRow = wsTarget.Cells(wsTarget.Rows.Count, 1).End(xlUp).Row + 1
-
-            ' Copy and paste formats from the row above
-            wsTarget.Rows(targetLastRow - 1).Copy
-            wsTarget.Rows(targetLastRow).PasteSpecial Paste:=xlFormats
+    ErrSection = "Highlights-" & i
             
-            ' Copy and paste values from the source
-            wsSource.Rows(i).Copy
-            wsTarget.Rows(targetLastRow).PasteSpecial Paste:=xlValue
-            
-            ' Clear clipboard
-            Application.CutCopyMode = False
-            
-            ' Delete the original row to avoid empty rows
-            wsSource.Rows(i).Delete Shift:=xlUp
-        End If
     Next i
-
-    ' Clear clipboard
-    Application.CutCopyMode = False
 
 CleanExit:
 
+    Set wsSource = wbThis.Sheets("FATURAMENTO")
+    
     Dim shp As Shape
     Dim txtBox As Shape
     Dim shapeFound As Boolean
-    
-    Set wsSource = wbThis.Sheets("FATURAMENTO")
     
     ' Loop through all shapes in the sheet
     shapeFound = False
