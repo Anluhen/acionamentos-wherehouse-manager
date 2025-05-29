@@ -583,14 +583,14 @@ ErrSection = "moveFinishedItems30-" & i
     ' Clear clipboard
     Application.CutCopyMode = False
 
+CleanExit:
+
     Dim shp As Shape
     Dim txtBox As Shape
     Dim shapeFound As Boolean
     
     Set wsSource = wbThis.Sheets("FATURAMENTO")
-
-CleanExit:
-
+    
     ' Loop through all shapes in the sheet
     shapeFound = False
     For Each shp In wsSource.Shapes
