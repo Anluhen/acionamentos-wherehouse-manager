@@ -589,6 +589,8 @@ ErrSection = "moveFinishedItems30-" & i
     
     Set wsSource = wbThis.Sheets("FATURAMENTO")
 
+CleanExit:
+
     ' Loop through all shapes in the sheet
     shapeFound = False
     For Each shp In wsSource.Shapes
@@ -599,8 +601,6 @@ ErrSection = "moveFinishedItems30-" & i
             Exit For
         End If
     Next shp
-
-CleanExit:
 
     ' Loop through all open workbooks to find if the exportWb is oppened
     For Each wb In Application.Workbooks
