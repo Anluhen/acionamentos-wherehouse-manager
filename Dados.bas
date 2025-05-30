@@ -543,11 +543,125 @@ Highlights:
     ' Loop through rows from bottom to top to avoid skipping rows after deletion
     For i = sourceLastRow To 2 Step -1 ' Assuming headers are in row 1
     ErrSection = "Highlights-" & i
-            
+            If wsSource.Cells(i, colDict("DataPrep")).Value >= wsSource.Cells(i, colDict("Date")).Value Then
+                wsSource.Cells(i, colDict("DataPrep")).Font.Color = RGB(255, 0, 0)
+                wsSource.Cells(i, colDict("DataPrep")).Interior.Color = RGB(255, 199, 206)
+            End If
     Next i
 
-CleanExit:
+' Jump next bit of code
+GoTo UpdateDateAndTime
 
+completeInfoJobsSAP:
+    
+    Dim newWb As Workbook
+    Dim filePath As String
+    Dim txtContent As String
+    Dim line As String
+    Dim fileNum As Integer
+    Dim rowNum As Long
+    
+    ' Opens first txt file
+    'filePath = "\\brjgs100\DFSWEG\APPS\SAP\EP0\WAU_ADCON_ACIONAMENTO\ADCON_FAT.txt"
+    filePath = "C:\Users\andre\OneDrive - WEG EQUIPAMENTOS ELETRICOS S.A\Desenvolvimentos\Acionamentos\Planilha Controle de Estoque\ADCON_FAT.txt"
+    
+    ' Set worksheets
+    Set newWb = Workbooks.Add
+    Set wsSource = newWb.Sheets(1)
+    Set wsTarget = wbThis.Sheets("FATURAMENTO")
+
+    ' Read and paste file
+    fileNum = FreeFile
+    Open filePath For Input As #fileNum
+    rowNum = 1
+    Do While Not EOF(fileNum)
+        Line Input #fileNum, line
+        wsSource.Cells(rowNum, 1).Value = line
+        rowNum = rowNum + 1
+    Loop
+    Close #fileNum
+    
+    ' Opens second txt file
+    'filePath = "\\brjgs100\DFSWEG\APPS\SAP\EP0\WAU_ADCON_ACIONAMENTO\ADCON_NFAT.txt"
+
+    ' Read and paste file
+    fileNum = FreeFile
+    Open filePath For Input As #fileNum
+
+    Do While Not EOF(fileNum)
+        Line Input #fileNum, line
+        wsSource.Cells(rowNum, 1).Value = line
+        rowNum = rowNum + 1
+    Loop
+    Close #fileNum
+    
+ErrSection = "completeInfoJobsSAP10"
+
+     If wsSource Is Nothing Or wsTarget Is Nothing Then
+        GoTo ErrorHandler
+    End If
+
+    ' Find the last used row and column in the source sheet
+    targetLastRow = wsTarget.Cells(wsSource.Rows.Count, 1).End(xlUp).Row
+    targetLastCol = wsTarget.Cells(2, wsSource.Columns.Count).End(xlToLeft).Column
+
+ErrSection = "completeInfoJobsSAP20"
+
+    ' If "Situação" column not found, exit sub
+    If colDict("Status") = 0 Then
+        GoTo ErrorHandler
+    End If
+    
+    ' Find the last used row and column in the source sheet
+    sourceLastRow = wsSource.Cells(wsSource.Rows.Count, 2).End(xlUp).Row
+    sourceLastCol = wsSource.Cells(2, wsSource.Columns.Count).End(xlToLeft).Column
+
+ErrSection = "completeInfoJobsSAP30"
+
+    ' Find the source columns
+    Set sourceColDict = CreateObject("Scripting.Dictionary")
+    Set sourceColDict = GetSourceColumnIndexes(wsSource)
+    
+    For Each key In sourceColDict.Keys
+        If sourceColDict(key) = 0 Then
+            MsgBox "Uma coluna do Analysis não foi encontrada." & vbCrLf & key & vbCrLf & "Os dados não serão atualizados do Analysis.", vbExclamation, "Falha ao Mapear Colunas"
+            GoTo completeLocationInfo
+        End If
+    Next key
+    
+    ' Loop through rows from bottom to top to avoid skipping rows after deletion
+    For i = sourceLastRow To 2 Step -1 ' Assuming headers are in row 1
+ErrSection = "completeInfoJobsSAP40-" & i
+        isNotFound = True
+
+        If InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") <> 0 Then
+            For j = targetLastRow To 3 Step -1 ' Assuming headers are in row 1
+                If Left(wsSource.Cells(i, sourceColDict("PEP")).Value, InStr(InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") + 1, wsSource.Cells(i, sourceColDict("PEP")).Value, "-") - 1) = Left(wsTarget.Cells(j, colDict("PEP")).Value, InStr(InStr(wsTarget.Cells(j, colDict("PEP")).Value, "-") + 1, wsTarget.Cells(j, colDict("PEP")).Value, "-") - 1) Then
+                    isNotFound = False
+                    Exit For
+                End If
+            Next j
+        End If
+        
+        If isNotFound Then
+            ' Create a new row with OrderLocation "Jaraguá", PhysicalStock 1320 and include Incoterm
+            ' Call AddNewRow(wsTarget, colDict, Date, sourcePEP, sourceMaterial, "Jaraguá", 1320, sourceIncoterms)
+        Else
+            
+            ' Check in wich column is the correct value for the following call
+            If wsSource.Cells(i, sourceColDict("Wallet")).Value > wsSource.Cells(i, sourceColDict("Amount")).Value Then
+                amount = wsSource.Cells(i, sourceColDict("Wallet")).Value
+            Else
+                amount = wsSource.Cells(i, sourceColDict("Amount")).Value
+            End If
+        
+            ' Update the existing row at index j
+            Call UpdateRowIfEmpty(wsTarget, j, colDict, Date, wsSource.Cells(i, sourceColDict("PEP")).Value, wsSource.Cells(i, sourceColDict("Market")).Value, wsSource.Cells(i, sourceColDict("Client")).Value, wsSource.Cells(i, sourceColDict("SalesDoc")).Value, "", "", wsSource.Cells(i, sourceColDict("Incoterms")).Value, wsSource.Cells(i, sourceColDict("Incoterms2")).Value, wsSource.Cells(i, sourceColDict("PM")).Value, amount, wsSource.Cells(i, sourceColDict("Plant")).Value, wsSource.Cells(i, sourceColDict("PrepDate")).Value, wsSource.Cells(i, sourceColDict("ShipmentDate")).Value)
+        End If
+    Next i
+
+UpdateDateAndTime:
+    
     Set wsSource = wbThis.Sheets("FATURAMENTO")
     
     Dim shp As Shape
@@ -564,6 +678,8 @@ CleanExit:
             Exit For
         End If
     Next shp
+    
+CleanExit:
 
     ' Loop through all open workbooks to find if the exportWb is oppened
     For Each wb In Application.Workbooks
