@@ -26,17 +26,17 @@ Public Sub UpdateProgress(ByVal percent As Long)
     If percent > 100 Then percent = 100
     
     ' Display the percentage as text on the bar:
-    Me.lblBar.Caption = percent & "%"
+    Me.Label5.Caption = percent & "%"
     
     ' Update the status label
     If percent >= 25 Then
-        Me.Label1.Caption = "ChrW(&H2713) Informações extraídas da ZTMM091"
+        Me.Label1.Caption = "Informações extraídas da ZTMM091"
     ElseIf percent >= 50 Then
-        Me.Label2.Caption = "ChrW(&H2713) Informações extraídas da VL10G"""
+        Me.Label2.Caption = "Informações extraídas da VL10G"""
     ElseIf percent >= 75 Then
-        Me.Label3.Caption = "ChrW(&H2713) Informações extraídas do Analysis"
+        Me.Label3.Caption = "Informações extraídas do Analysis"
     ElseIf percent >= 99 Then
-        Me.Label4.Caption = "ChrW(&H2713) Datas destacadas"
+        Me.Label4.Caption = "Datas destacadas"
     ElseIf percent >= 100 Then
         Me.lblBar.Caption = "CONCLUÍDO"
     End If
@@ -51,13 +51,13 @@ End Sub
 
 ' Clear or reset form when it initializes (optional)
 Private Sub UserForm_Initialize()
-    Me.lblStatus.Caption = ""
     Me.lblBar.Width = 0
     
     Me.Label1.Caption = "Extraindo informações da ZTMM091"
     Me.Label2.Caption = "Extraindo informações da VL10G"""
     Me.Label3.Caption = "Extraindo informações do Analysis"
     Me.Label4.Caption = "Destacando datas"
+    Me.Label5.Caption = "0% - Iniciando"
     
 End Sub
 '--------------------------------------------
