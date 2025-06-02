@@ -15,6 +15,8 @@ Sub AtualizarDados(Optional ShowOnMacroList As Boolean = False)
     
     OptimizeCodeExecution True
     
+    frmProgress.Show vbModeless
+    
     Dim wbThis As Workbook, exportWb As Workbook, wb As Workbook
     Dim wsSource As Worksheet, wsTarget As Worksheet
     Dim sourceLastRow As Long, sourceLastCol As Long, targetLastRow As Long, targetLastCol As Long
@@ -34,6 +36,8 @@ Sub AtualizarDados(Optional ShowOnMacroList As Boolean = False)
     Dim amount As Double
     
 ErrSection = "variableDeclarations"
+    
+    frmProgress.UpdateProgress 5
     
     Set wbThis = ThisWorkbook
     
@@ -73,6 +77,8 @@ ErrSection = "variableDeclarations10"
     
 ErrSection = "extractZTMM091FromSAP"
 
+    frmProgress.UpdateProgress 10
+    
     ' Name of the workbook to find
     exportWbName = "ZTMM091"
     
@@ -102,6 +108,8 @@ ErrSection = "extractZTMM091FromSAP"
 ErrSection = "extractDataFromZTMM091"
     
     startTime = Timer
+     
+    frmProgress.UpdateProgress 15
     
     Do
         found = False
@@ -174,6 +182,8 @@ ErrSection = "extractDataFromZTMM09130"
 ErrSection = "extractDataFromZTMM09140-" & i
         isNotFound = True
         
+        frmProgress.UpdateProgress ((i / sourceLastRow) * 10 + 15)
+    
         sourcePEP = wsSource.Cells(i, sourceColIndex + 2).Value
         sourceMaterial = wsSource.Cells(i, sourceColIndex).Value
         sourceValor = wsSource.Cells(i, sourceColIndex + 8).Value
@@ -208,6 +218,8 @@ SkipIterationZTMM091:
     On Error Resume Next
     Kill exportWbPath & exportWbName
     On Error GoTo ErrorHandler
+
+frmProgress.UpdateProgress 25
 
 extractVL10GFromSAP:
 ErrSection = "extractVL10GFromSAP"
@@ -268,7 +280,9 @@ ErrSection = "extractVL10GFromSAP"
 ErrSection = "extractDataFromVL10G"
 
     startTime = Timer
-    
+
+frmProgress.UpdateProgress 35
+
     Do
         found = False
         
@@ -299,7 +313,9 @@ ErrSection = "extractDataFromVL10G"
     Set wsTarget = wbThis.Sheets("FATURAMENTO")
 
 ErrSection = "extractDataFromVL10G10"
-        
+
+frmProgress.UpdateProgress 40
+
      If wsSource Is Nothing Or wsTarget Is Nothing Then
         GoTo ErrorHandler
     End If
@@ -342,6 +358,8 @@ ErrSection = "extractDataFromVL10G30"
 ErrSection = "extractDataFromVL10G40-" & i
         isNotFound = True
         
+frmProgress.UpdateProgress ((i / sourceLastRow) * 10 + 40)
+
         sourceIncoterms = wsSource.Cells(i, sourceColIndex - 7).Value
         sourcePEP = wsSource.Cells(i, sourceColIndex - 3).Value
         sourceMaterial = wsSource.Cells(i, sourceColIndex).Value
@@ -378,6 +396,8 @@ SkipIterationVL10G:
     Kill exportWbPath & exportWbName
     On Error GoTo ErrorHandler
 
+frmProgress.UpdateProgress 50
+
 completeInformationFromAnalisys:
 ErrSection = "completeInformationFromAnalisys"
 
@@ -386,6 +406,8 @@ ErrSection = "completeInformationFromAnalisys"
     exportWbName = "ANALYSIS_ADCON_WAU.xlsm"
     
     tries = 0
+
+frmProgress.UpdateProgress 55
 
     Do
         If tries > 10 Then
@@ -413,6 +435,8 @@ ErrSection = "completeInformationFromAnalisys"
     Set wsTarget = wbThis.Sheets("FATURAMENTO")
 
 ErrSection = "completeInformationFromAnalisys10"
+
+frmProgress.UpdateProgress 60
 
      If wsSource Is Nothing Or wsTarget Is Nothing Then
         GoTo ErrorHandler
@@ -445,14 +469,18 @@ ErrSection = "completeInformationFromAnalisys30"
             GoTo completeLocationInfo
         End If
     Next key
-    
+
+frmProgress.UpdateProgress 65
+
     ' Loop through rows from bottom to top to avoid skipping rows after deletion
-    For i = sourceLastRow To 2 Step -1 ' Assuming headers are in row 1
+    For i = sourceLastRow To 3 Step -1 ' Assuming headers are in row 2
 ErrSection = "completeInformationFromAnalisys40-" & i
         isNotFound = True
 
+frmProgress.UpdateProgress ((i / sourceLastRow) * 10 + 65)
+
         If InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") <> 0 Then
-            For j = targetLastRow To 3 Step -1 ' Assuming headers are in row 1
+            For j = targetLastRow To 3 Step -1 ' Assuming headers are in row 2
                 If Left(wsSource.Cells(i, sourceColDict("PEP")).Value, InStr(InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") + 1, wsSource.Cells(i, sourceColDict("PEP")).Value, "-") - 1) = Left(wsTarget.Cells(j, colDict("PEP")).Value, InStr(InStr(wsTarget.Cells(j, colDict("PEP")).Value, "-") + 1, wsTarget.Cells(j, colDict("PEP")).Value, "-") - 1) Then
                     isNotFound = False
                     Exit For
@@ -485,6 +513,8 @@ ErrSection = "completeLocationInfo"
      If wsTarget Is Nothing Then
         GoTo ErrorHandler
     End If
+
+frmProgress.UpdateProgress 75
 
 ErrSection = "completeLocationInfo10"
 
@@ -528,9 +558,8 @@ ErrSection = "completeLocationInfo30-" & i
             End If
         End With
     Next i
-    
-    ' Success message
-    MsgBox "Os dados foram atualizados com sucesso!", vbInformation, "Macro Finalizada"
+
+frmProgress.UpdateProgress 80
 
 Highlights:
 
@@ -549,6 +578,8 @@ Highlights:
             End If
     Next i
 
+frmProgress.UpdateProgress 99
+
 ' Jump next bit of code
 GoTo UpdateDateAndTime
 
@@ -560,6 +591,7 @@ completeInfoJobsSAP:
     Dim line As String
     Dim fileNum As Integer
     Dim rowNum As Long
+    Dim bufferSize As Long
     
     ' Opens first txt file
     'filePath = "\\brjgs100\DFSWEG\APPS\SAP\EP0\WAU_ADCON_ACIONAMENTO\ADCON_FAT.txt"
@@ -570,15 +602,30 @@ completeInfoJobsSAP:
     Set wsSource = newWb.Sheets(1)
     Set wsTarget = wbThis.Sheets("FATURAMENTO")
 
+    ' Buffer size for batch writing
+    bufferSize = 10000
+    ReDim Lines(1 To bufferSize)
+    
     ' Read and paste file
     fileNum = FreeFile
     Open filePath For Input As #fileNum
+    
     rowNum = 1
     Do While Not EOF(fileNum)
-        Line Input #fileNum, line
-        wsSource.Cells(rowNum, 1).Value = line
-        rowNum = rowNum + 1
+        For i = 1 To bufferSize
+            If Not EOF(fileNum) Then
+                Line Input #fileNum, line
+                Lines(i) = line
+            Else
+                Exit For
+            End If
+        Next i
+
+        ' Write buffered lines
+        wsSource.Range("A" & rowNum).Resize(i - 1, 1).Value = Application.Transpose(Lines)
+        rowNum = rowNum + i - 1
     Loop
+    
     Close #fileNum
     
     ' Opens second txt file
@@ -678,6 +725,8 @@ UpdateDateAndTime:
             Exit For
         End If
     Next shp
+    
+    frmProgress.UpdateProgress 100
     
 CleanExit:
 
