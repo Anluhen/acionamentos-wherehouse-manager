@@ -15,7 +15,7 @@ Sub AtualizarDados(Optional ShowOnMacroList As Boolean = False)
     
     OptimizeCodeExecution True
     
-    frmProgress.Show vbModeless
+    ProgressBar.Show vbModeless
     
     Dim wbThis As Workbook, exportWb As Workbook, wb As Workbook
     Dim wsSource As Worksheet, wsTarget As Worksheet
@@ -36,8 +36,6 @@ Sub AtualizarDados(Optional ShowOnMacroList As Boolean = False)
     Dim amount As Double
     
 ErrSection = "variableDeclarations"
-    
-    frmProgress.UpdateProgress 5
     
     Set wbThis = ThisWorkbook
     
@@ -63,6 +61,8 @@ ErrSection = "variableDeclarations10"
         End If
     Next key
     
+    ProgressBar.UpdateProgress 5
+    
     ' Setup SAP and check if it is running
     Do While Not SetupSAPScripting
         ' Ask the user to initiate SAP or cancel
@@ -77,7 +77,7 @@ ErrSection = "variableDeclarations10"
     
 ErrSection = "extractZTMM091FromSAP"
 
-    frmProgress.UpdateProgress 10
+    ProgressBar.UpdateProgress 10
     
     ' Name of the workbook to find
     exportWbName = "ZTMM091"
@@ -109,7 +109,7 @@ ErrSection = "extractDataFromZTMM091"
     
     startTime = Timer
      
-    frmProgress.UpdateProgress 15
+    ProgressBar.UpdateProgress 15
     
     Do
         found = False
@@ -182,7 +182,7 @@ ErrSection = "extractDataFromZTMM09130"
 ErrSection = "extractDataFromZTMM09140-" & i
         isNotFound = True
         
-        frmProgress.UpdateProgress ((i / sourceLastRow) * 10 + 15)
+ProgressBar.UpdateProgress (((sourceLastRow - i) / sourceLastRow) * 10 + 15)
     
         sourcePEP = wsSource.Cells(i, sourceColIndex + 2).Value
         sourceMaterial = wsSource.Cells(i, sourceColIndex).Value
@@ -219,7 +219,7 @@ SkipIterationZTMM091:
     Kill exportWbPath & exportWbName
     On Error GoTo ErrorHandler
 
-frmProgress.UpdateProgress 25
+ProgressBar.UpdateProgress 25
 
 extractVL10GFromSAP:
 ErrSection = "extractVL10GFromSAP"
@@ -281,7 +281,7 @@ ErrSection = "extractDataFromVL10G"
 
     startTime = Timer
 
-frmProgress.UpdateProgress 35
+ProgressBar.UpdateProgress 35
 
     Do
         found = False
@@ -314,7 +314,7 @@ frmProgress.UpdateProgress 35
 
 ErrSection = "extractDataFromVL10G10"
 
-frmProgress.UpdateProgress 40
+ProgressBar.UpdateProgress 40
 
      If wsSource Is Nothing Or wsTarget Is Nothing Then
         GoTo ErrorHandler
@@ -358,7 +358,7 @@ ErrSection = "extractDataFromVL10G30"
 ErrSection = "extractDataFromVL10G40-" & i
         isNotFound = True
         
-frmProgress.UpdateProgress ((i / sourceLastRow) * 10 + 40)
+ProgressBar.UpdateProgress (((sourceLastRow - i) / sourceLastRow) * 10 + 40)
 
         sourceIncoterms = wsSource.Cells(i, sourceColIndex - 7).Value
         sourcePEP = wsSource.Cells(i, sourceColIndex - 3).Value
@@ -396,7 +396,7 @@ SkipIterationVL10G:
     Kill exportWbPath & exportWbName
     On Error GoTo ErrorHandler
 
-frmProgress.UpdateProgress 50
+ProgressBar.UpdateProgress 50
 
 completeInformationFromAnalisys:
 ErrSection = "completeInformationFromAnalisys"
@@ -407,7 +407,7 @@ ErrSection = "completeInformationFromAnalisys"
     
     tries = 0
 
-frmProgress.UpdateProgress 55
+ProgressBar.UpdateProgress 55
 
     Do
         If tries > 10 Then
@@ -436,7 +436,7 @@ frmProgress.UpdateProgress 55
 
 ErrSection = "completeInformationFromAnalisys10"
 
-frmProgress.UpdateProgress 60
+ProgressBar.UpdateProgress 60
 
      If wsSource Is Nothing Or wsTarget Is Nothing Then
         GoTo ErrorHandler
@@ -470,17 +470,17 @@ ErrSection = "completeInformationFromAnalisys30"
         End If
     Next key
 
-frmProgress.UpdateProgress 65
+ProgressBar.UpdateProgress 65
 
     ' Loop through rows from bottom to top to avoid skipping rows after deletion
     For i = sourceLastRow To 3 Step -1 ' Assuming headers are in row 2
 ErrSection = "completeInformationFromAnalisys40-" & i
         isNotFound = True
 
-frmProgress.UpdateProgress ((i / sourceLastRow) * 10 + 65)
+ProgressBar.UpdateProgress (((sourceLastRow - i) / sourceLastRow) * 10 + 65)
 
         If InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") <> 0 Then
-            For j = targetLastRow To 3 Step -1 ' Assuming headers are in row 2
+            For j = targetLastRow - 1 To 3 Step -1 ' Assuming headers are in row 2
                 If Left(wsSource.Cells(i, sourceColDict("PEP")).Value, InStr(InStr(wsSource.Cells(i, sourceColDict("PEP")).Value, "-") + 1, wsSource.Cells(i, sourceColDict("PEP")).Value, "-") - 1) = Left(wsTarget.Cells(j, colDict("PEP")).Value, InStr(InStr(wsTarget.Cells(j, colDict("PEP")).Value, "-") + 1, wsTarget.Cells(j, colDict("PEP")).Value, "-") - 1) Then
                     isNotFound = False
                     Exit For
@@ -514,7 +514,7 @@ ErrSection = "completeLocationInfo"
         GoTo ErrorHandler
     End If
 
-frmProgress.UpdateProgress 75
+ProgressBar.UpdateProgress 75
 
 ErrSection = "completeLocationInfo10"
 
@@ -559,7 +559,7 @@ ErrSection = "completeLocationInfo30-" & i
         End With
     Next i
 
-frmProgress.UpdateProgress 80
+ProgressBar.UpdateProgress 80
 
 Highlights:
 
@@ -578,7 +578,7 @@ Highlights:
             End If
     Next i
 
-frmProgress.UpdateProgress 99
+ProgressBar.UpdateProgress 99
 
 ' Jump next bit of code
 GoTo UpdateDateAndTime
@@ -726,7 +726,7 @@ UpdateDateAndTime:
         End If
     Next shp
     
-    frmProgress.UpdateProgress 100
+    ProgressBar.UpdateProgress 100
     
 CleanExit:
 
@@ -739,6 +739,9 @@ CleanExit:
     
     ' Ensure that all optimizations are turned back on
     OptimizeCodeExecution False
+    
+    Unload ProgressBar
+    
     Exit Sub
 
 ErrorHandler:
