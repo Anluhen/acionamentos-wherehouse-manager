@@ -197,7 +197,7 @@ ProgressBar.UpdateProgress (((sourceLastRow - i) / sourceLastRow) * 10 + 15)
             targetZETO = wsTarget.Cells(j, colDict("ZETO")).Value
             targetZVA1 = wsTarget.Cells(j, colDict("ZVA1")).Value
         
-            If sourcePEP = targetPEP And (sourceMaterial = targetZETO Or sourceMaterial = targetZVA1) Then
+            If sourcePEP = targetPEP Then
                 isNotFound = False
                 Exit For
             End If
@@ -374,7 +374,7 @@ ProgressBar.UpdateProgress (((sourceLastRow - i) / sourceLastRow) * 10 + 40)
             targetZETO = wsTarget.Cells(j, colDict("ZETO")).Value
             targetZVA1 = wsTarget.Cells(j, colDict("ZVA1")).Value
         
-            If sourcePEP = targetPEP And (sourceMaterial = targetZETO Or sourceMaterial = targetZVA1) Then
+            If sourcePEP = targetPEP Then
                 isNotFound = False
                 Exit For
             End If
